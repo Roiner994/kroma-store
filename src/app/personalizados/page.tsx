@@ -1,29 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { buildWhatsAppCustomUrl } from '@/lib/whatsapp';
 
+const CAROUSEL_IMAGES = [
+  { src: '/images/products/essential-oversize-black.png', alt: 'Diseño personalizado KROMA 1' },
+  { src: '/images/products/grafica-signature-white.png', alt: 'Diseño personalizado KROMA 2' },
+  { src: '/images/products/vintage-heavyweight-gray.png', alt: 'Diseño personalizado KROMA 3' },
+];
+
 export default function PersonalizadosPage() {
-  const [files, setFiles] = useState<{ name: string; size: string }[]>([
-    { name: 'logo_kroma_v2.png', size: '1.2 MB' },
-    { name: 'referencia_estilo_retro.jpg', size: '840 KB' },
-  ]);
+  const [files, setFiles] = useState<{ name: string; size: string }[]>([]);
   const [details, setDetails] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [currentImage, setCurrentImage] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleNextImage = () => {
+    setCurrentImage((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImage((prev) => (prev - 1 + CAROUSEL_IMAGES.length) % CAROUSEL_IMAGES.length);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    addFiles(selectedFiles);
+  };
+
+  const addFiles = (newFiles: File[]) => {
+    setFiles((prev) => [
+      ...prev,
+      ...newFiles.map((f) => ({
+        name: f.name,
+        size: f.size > 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(1)} MB` : `${(f.size / 1024).toFixed(0)} KB`,
+      })),
+    ]);
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles((prev) => [
-      ...prev,
-      ...droppedFiles.map((f) => ({
-        name: f.name,
-        size: f.size > 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(1)} MB` : `${(f.size / 1024).toFixed(0)} KB`,
-      })),
-    ]);
+    addFiles(droppedFiles);
   };
 
   const removeFile = (index: number) => {
@@ -63,44 +85,64 @@ export default function PersonalizadosPage() {
             <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
               Explora algunos de nuestros proyectos personalizados más icónicos. Desde marcas emergentes hasta colecciones exclusivas, convertimos tu visión en prendas de alta gama.
             </p>
-            <button
-              onClick={handleSendWhatsApp}
-              className="mt-6 w-fit rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
-            >
-              Comenzar Mi Diseño
-            </button>
           </motion.div>
 
-          {/* Right - Image carousel placeholder */}
+          {/* Right - Image carousel */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface lg:aspect-auto lg:min-h-[500px]"
           >
-            <Image
-              src="/images/products/essential-oversize-black.png"
-              alt="Diseño personalizado KROMA"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImage}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={CAROUSEL_IMAGES[currentImage].src}
+                  alt={CAROUSEL_IMAGES[currentImage].alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </motion.div>
+            </AnimatePresence>
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
             {/* Carousel dots */}
             <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />
+              {CAROUSEL_IMAGES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentImage(i)}
+                  className={`h-2 w-2 rounded-full transition-all ${
+                    i === currentImage ? 'bg-white w-4' : 'bg-white/40'
+                  }`}
+                  aria-label={`Ir a imagen ${i + 1}`}
+                />
               ))}
             </div>
 
             {/* Nav arrows */}
-            <button className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60">
+            <button
+              onClick={handlePrevImage}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 cursor-pointer"
+              aria-label="Anterior"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
             </button>
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60">
+            <button
+              onClick={handleNextImage}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 cursor-pointer"
+              aria-label="Siguiente"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
               </svg>
@@ -153,12 +195,25 @@ export default function PersonalizadosPage() {
                   dragOver ? 'border-accent bg-accent/5' : 'border-border hover:border-border-hover'
                 }`}
               >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept="image/*,.pdf"
+                  className="hidden"
+                />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="mb-3 h-10 w-10 text-muted">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
                 </svg>
                 <p className="text-sm text-muted-foreground">
                   Arrastra una o varias fotos aquí o{' '}
-                  <button className="text-accent-light underline">explora</button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-accent-light underline cursor-pointer"
+                  >
+                    explora
+                  </button>
                 </p>
                 <p className="mt-1 text-xs text-muted">PNG, JPG o PDF hasta 20MB</p>
               </div>
@@ -205,7 +260,8 @@ export default function PersonalizadosPage() {
             {/* Submit */}
             <button
               onClick={handleSendWhatsApp}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp py-4 text-sm font-semibold text-white transition-colors hover:bg-whatsapp-hover"
+              disabled={files.length === 0 || !details.trim()}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp py-4 text-sm font-semibold text-white transition-all hover:bg-whatsapp-hover disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed cursor-pointer"
               id="send-designs-whatsapp"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">

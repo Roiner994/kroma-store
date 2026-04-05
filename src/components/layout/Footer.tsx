@@ -61,7 +61,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
-          <p className="text-xs text-muted-foreground">©{new Date().getFullYear()} KROMA. Todos los derechos reservados.</p>
+          <p className="text-xs text-muted-foreground" suppressHydrationWarning>©{new Date().getFullYear()} KROMA. Todos los derechos reservados.</p>
           <div className="flex items-center gap-4">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground" aria-label="Instagram">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4">

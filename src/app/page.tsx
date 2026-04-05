@@ -11,7 +11,6 @@ export default async function CatalogPage() {
     <>
       <HeroBanner />
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <WhatsAppBanner />
         <div className="flex flex-col gap-8 lg:flex-row">
           <FiltersSidebar />
           <ProductGrid products={products} />
