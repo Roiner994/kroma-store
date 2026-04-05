@@ -9,6 +9,7 @@ import { useCartStore } from '@/providers/StoreProvider';
 export default function Navbar() {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -89,6 +90,21 @@ export default function Navbar() {
               </motion.span>
             )}
           </button>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden rounded-lg p-2 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-white"
+            aria-label="Menú móvil"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+              )}
+            </svg>
+          </button>
         </div>
       </nav>
 
@@ -99,7 +115,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-border px-4 py-3"
+            className="border-t border-border px-4 py-3 bg-background"
           >
             <div className="mx-auto max-w-2xl">
               <input
@@ -109,6 +125,35 @@ export default function Navbar() {
                 autoFocus
                 id="search-input"
               />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t border-border bg-background"
+          >
+            <div className="flex flex-col px-4 py-4 space-y-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-base font-medium transition-colors hover:text-white ${
+                    pathname === link.href
+                      ? 'text-white'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </motion.div>
         )}

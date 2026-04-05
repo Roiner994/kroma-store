@@ -70,7 +70,7 @@ export default function NosotrosPage() {
           <h2 className="mb-2 text-lg font-semibold text-foreground">¿Listo para crear algo único?</h2>
           <p className="mb-4">Contáctanos por WhatsApp y hagamos realidad tu diseño.</p>
           <a
-            href="https://wa.me/584148589600?text=¡Hola!%20Me%20interesa%20saber%20más%20sobre%20KROMA"
+            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_PHONE}?text=¡Hola!%20Me%20interesa%20saber%20más%20sobre%20KROMA`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-whatsapp-hover"

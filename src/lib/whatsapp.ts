@@ -1,7 +1,7 @@
 import { CartItem } from '@/types';
 import { formatPrice } from './utils';
 
-const WHATSAPP_PHONE = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '521234567890';
+const WHATSAPP_PHONE = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '584148589600';
 
 /**
  * Build a pre-filled WhatsApp message URL from cart items

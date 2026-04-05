@@ -2,6 +2,7 @@
 
 import { useFiltersStore } from '@/providers/StoreProvider';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const CATEGORIES = [
   { id: 'normal', label: 'Corte Normal' },
@@ -31,23 +32,38 @@ export default function FiltersSidebar() {
   const toggleColor = useFiltersStore((s) => s.toggleColor);
   const clearAll = useFiltersStore((s) => s.clearAll);
   const hasActiveFilters = useFiltersStore((s) => s.hasActiveFilters);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <aside className="w-full shrink-0 space-y-6 lg:w-48" id="filters-sidebar">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Filtros</h2>
-        {hasActiveFilters() && (
-          <button
-            onClick={clearAll}
-            className="text-xs text-muted-foreground underline transition-colors hover:text-foreground"
-          >
-            Limpiar
-          </button>
-        )}
+    <aside className="w-full shrink-0 lg:w-48" id="filters-sidebar">
+      {/* Header and Mobile Toggle */}
+      <div className="mb-4 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold lg:text-sm lg:font-semibold">Filtros</h2>
+          <div className="flex items-center gap-4">
+            {hasActiveFilters() && (
+              <button
+                onClick={clearAll}
+                className="text-sm font-medium text-muted-foreground underline transition-colors hover:text-foreground lg:text-xs"
+              >
+                Limpiar todo
+              </button>
+            )}
+            <button 
+              className="flex items-center justify-center rounded-md border border-border bg-surface p-2 lg:hidden"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={cn("h-4 w-4 transition-transform", isOpen ? "rotate-180" : "rotate-0")}>
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Category */}
+      <div className={cn("space-y-6 lg:block lg:space-y-6", isOpen ? "block mt-6" : "hidden")}>
+        {/* Category */}
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wider">Categoría</h3>
@@ -137,6 +153,7 @@ export default function FiltersSidebar() {
             </button>
           ))}
         </div>
+      </div>
       </div>
     </aside>
   );
