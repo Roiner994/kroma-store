@@ -17,6 +17,7 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({ product, relatedProducts }: ProductDetailClientProps) {
   const [selectedVariation, setSelectedVariation] = useState(product.variations[0]);
+  const [selectedImage, setSelectedImage] = useState(product.main_image_url || '');
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [openAccordion, setOpenAccordion] = useState<string | null>('details');
@@ -30,6 +31,11 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
 
   // Get current SKU
   const currentSku = selectedVariation?.skus?.find((s) => s.size_name === selectedSize);
+
+  // Build combined gallery from main image and additional images
+  const gallery = [product.main_image_url, ...(product.image_urls || [])]
+    .filter((url: string | null): url is string => !!url)
+    .filter((url, index, self) => self.indexOf(url) === index);
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedVariation || !currentSku) return;
@@ -82,42 +88,45 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
         <div>
           {/* Main Image */}
           <motion.div
-            key={selectedVariation?.id}
+            key={selectedImage}
             initial={{ opacity: 0.5 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
             className="relative aspect-square overflow-hidden rounded-2xl bg-surface"
           >
             <Image
-              src={selectedVariation?.variation_image_url || product.main_image_url || ''}
-              alt={`${product.name} - ${selectedVariation?.color_name}`}
+              src={selectedImage || '/placeholder-product.png'}
+              alt={product.name}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </motion.div>
 
+
           {/* Thumbnails */}
-          <div className="mt-3 flex gap-2">
-            {product.variations.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setSelectedVariation(v)}
-                className={cn(
-                  'relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all',
-                  selectedVariation?.id === v.id ? 'border-accent' : 'border-border hover:border-border-hover'
-                )}
-              >
-                <Image
-                  src={v.variation_image_url || product.main_image_url || ''}
-                  alt={v.color_name}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                />
-              </button>
-            ))}
-          </div>
+          {gallery.length > 1 && (
+            <div className="mt-3 flex gap-2">
+              {gallery.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(url)}
+                  className={cn(
+                    'relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all',
+                    selectedImage === url ? 'border-accent' : 'border-border hover:border-border-hover'
+                  )}
+                >
+                  <Image
+                    src={url}
+                    alt={`Thumbnail ${i + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Info */}
@@ -143,7 +152,11 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               {product.variations.map((v) => (
                 <button
                   key={v.id}
-                  onClick={() => { setSelectedVariation(v); setSelectedSize(''); }}
+                  onClick={() => { 
+                    setSelectedVariation(v); 
+                    setSelectedSize(''); 
+                    if (v.variation_image_url) setSelectedImage(v.variation_image_url);
+                  }}
                   className={cn(
                     'h-8 w-8 rounded-full border-2 transition-all',
                     selectedVariation?.id === v.id

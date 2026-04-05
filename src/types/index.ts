@@ -12,6 +12,7 @@ export interface Product {
   fit_type: string;
   sizing_chart_url: string | null;
   main_image_url: string | null;
+  image_urls: string[];
   badge: string | null;
   is_active: boolean;
   created_at: string;
