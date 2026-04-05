@@ -4,6 +4,8 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { buildWhatsAppCustomUrl } from '@/lib/whatsapp';
+import { createClient } from '@/lib/supabase/client';
+
 
 const CAROUSEL_IMAGES = [
   { src: '/images/products/essential-oversize-black.png', alt: 'Diseño personalizado KROMA 1' },
@@ -12,11 +14,14 @@ const CAROUSEL_IMAGES = [
 ];
 
 export default function PersonalizadosPage() {
-  const [files, setFiles] = useState<{ name: string; size: string }[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [details, setDetails] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
+
 
   const handleNextImage = () => {
     setCurrentImage((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
@@ -32,14 +37,9 @@ export default function PersonalizadosPage() {
   };
 
   const addFiles = (newFiles: File[]) => {
-    setFiles((prev) => [
-      ...prev,
-      ...newFiles.map((f) => ({
-        name: f.name,
-        size: f.size > 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(1)} MB` : `${(f.size / 1024).toFixed(0)} KB`,
-      })),
-    ]);
+    setFiles((prev) => [...prev, ...newFiles]);
   };
+
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -52,17 +52,56 @@ export default function PersonalizadosPage() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSendWhatsApp = () => {
-    let message = '';
-    if (files.length > 0) {
-      message += `📎 Archivos adjuntos: ${files.map((f) => f.name).join(', ')}\n\n`;
+  const handleSendWhatsApp = async () => {
+    if (files.length === 0 || !details.trim()) return;
+
+    setIsUploading(true);
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error } = await supabase.storage
+          .from('custom-designs')
+          .upload(filePath, file);
+
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('custom-designs')
+          .getPublicUrl(filePath);
+
+        return publicUrl;
+      });
+
+      const publicUrls = await Promise.all(uploadPromises);
+
+      let message = '';
+      if (publicUrls.length > 0) {
+        message += `🖼️ *Archivos de referencia:*\n`;
+        publicUrls.forEach((url, i) => {
+          message += `• [Archivo ${i + 1}](${url})\n`;
+        });
+        message += `\n`;
+      }
+      
+      if (details) {
+        message += `📋 *Detalles del pedido:*\n${details}`;
+      }
+
+      const url = buildWhatsAppCustomUrl(message || 'Me gustaría hacer un pedido personalizado.');
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error uploading designs:', error);
+      alert('Hubo un error al subir tus diseños. Por favor intenta de nuevo.');
+    } finally {
+      setIsUploading(false);
     }
-    if (details) {
-      message += `📋 Detalles del pedido:\n${details}`;
-    }
-    const url = buildWhatsAppCustomUrl(message || 'Me gustaría hacer un pedido personalizado.');
-    window.open(url, '_blank');
   };
+
 
   return (
     <>
@@ -231,8 +270,11 @@ export default function PersonalizadosPage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{file.size} • Listo para enviar</p>
+                          <p className="text-xs text-muted-foreground">
+                            {file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${(file.size / 1024).toFixed(0)} KB`} • Listo para enviar
+                          </p>
                         </div>
+
                       </div>
                       <button onClick={() => removeFile(i)} className="text-red-400 transition-colors hover:text-red-300">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
@@ -260,14 +302,27 @@ export default function PersonalizadosPage() {
             {/* Submit */}
             <button
               onClick={handleSendWhatsApp}
-              disabled={files.length === 0 || !details.trim()}
+              disabled={files.length === 0 || !details.trim() || isUploading}
+
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp py-4 text-sm font-semibold text-white transition-all hover:bg-whatsapp-hover disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed cursor-pointer"
               id="send-designs-whatsapp"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-              Enviar Diseños por WhatsApp
+              {isUploading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Subiendo diseños...</span>
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  <span>Enviar Diseños por WhatsApp</span>
+                </>
+              )}
             </button>
             <p className="text-center text-xs text-muted-foreground">
               Se abrirá WhatsApp con tus imágenes adjuntas y tu mensaje preparado.
