@@ -13,9 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const navLinks = [
-    { href: '/admin', label: 'DASHBOARD' },
-    { href: '/admin/productos', label: 'PRODUCTS' },
-    { href: '/admin/orders', label: 'ORDERS' },
+    { href: '/admin/productos', label: 'PRODUCTOS' },
   ];
 
   return (
@@ -53,13 +51,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Discard
-            </Link>
-            <button className="rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-hover">
-              Save Product
-            </button>
+            {/* Action buttons moved to specific pages */}
           </div>
+
         </nav>
       </header>
 

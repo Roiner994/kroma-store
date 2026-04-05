@@ -5,7 +5,7 @@ import ProductGrid from '@/components/catalog/ProductGrid';
 import { getProducts } from '@/lib/data';
 
 export default async function CatalogPage() {
-  const products = await getProducts();
+  const { products } = await getProducts();
 
   return (
     <>

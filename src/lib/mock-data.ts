@@ -10,7 +10,7 @@ export const FIT_TYPE_LABELS: Record<string, string> = {
 
 export const MOCK_PRODUCTS: ProductWithVariations[] = [
   {
-    id: '1',
+    id: '00000000-0000-0000-0000-000000000001',
     name: 'KROMA Essential Oversize',
     slug: 'kroma-essential-oversize',
     base_price: 25.0,
@@ -25,7 +25,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     updated_at: new Date().toISOString(),
     variations: [
       {
-        id: 'v1a', product_id: '1', color_name: 'Negro', color_hex: '#000000',
+        id: 'v1a', product_id: '00000000-0000-0000-0000-000000000001', color_name: 'Negro', color_hex: '#000000',
         variation_image_url: '/images/products/essential-oversize-black.png', display_order: 0, created_at: new Date().toISOString(),
         skus: [
           { id: 's1', variation_id: 'v1a', size_name: 'S', stock_count: 30, sku_code: 'KRM-ESS-BLK-S', created_at: new Date().toISOString() },
@@ -36,7 +36,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v1b', product_id: '1', color_name: 'Gris Carbón', color_hex: '#4a4a4a',
+        id: 'v1b', product_id: '00000000-0000-0000-0000-000000000001', color_name: 'Gris Carbón', color_hex: '#4a4a4a',
         variation_image_url: '/images/products/vintage-heavyweight-gray.png', display_order: 1, created_at: new Date().toISOString(),
         skus: [
           { id: 's6', variation_id: 'v1b', size_name: 'S', stock_count: 25, sku_code: 'KRM-ESS-GRC-S', created_at: new Date().toISOString() },
@@ -48,7 +48,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     ],
   },
   {
-    id: '2',
+    id: '00000000-0000-0000-0000-000000000002',
     name: 'Camiseta Gráfica Signature',
     slug: 'camiseta-grafica-signature',
     base_price: 30.0,
@@ -63,7 +63,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     updated_at: new Date().toISOString(),
     variations: [
       {
-        id: 'v2a', product_id: '2', color_name: 'Blanco', color_hex: '#ffffff',
+        id: 'v2a', product_id: '00000000-0000-0000-0000-000000000002', color_name: 'Blanco', color_hex: '#ffffff',
         variation_image_url: '/images/products/grafica-signature-white.png', display_order: 0, created_at: new Date().toISOString(),
         skus: [
           { id: 's10', variation_id: 'v2a', size_name: 'S', stock_count: 40, sku_code: 'KRM-GRA-WHT-S', created_at: new Date().toISOString() },
@@ -73,7 +73,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v2b', product_id: '2', color_name: 'Negro', color_hex: '#000000',
+        id: 'v2b', product_id: '00000000-0000-0000-0000-000000000002', color_name: 'Negro', color_hex: '#000000',
         variation_image_url: '/images/products/essential-oversize-black.png', display_order: 1, created_at: new Date().toISOString(),
         skus: [
           { id: 's14', variation_id: 'v2b', size_name: 'M', stock_count: 60, sku_code: 'KRM-GRA-BLK-M', created_at: new Date().toISOString() },
@@ -83,7 +83,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     ],
   },
   {
-    id: '3',
+    id: '00000000-0000-0000-0000-000000000003',
     name: 'Camiseta Vintage Heavyweight',
     slug: 'camiseta-vintage-heavyweight',
     base_price: 35.0,
@@ -98,7 +98,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     updated_at: new Date().toISOString(),
     variations: [
       {
-        id: 'v3a', product_id: '3', color_name: 'Gris', color_hex: '#808080',
+        id: 'v3a', product_id: '00000000-0000-0000-0000-000000000003', color_name: 'Gris', color_hex: '#808080',
         variation_image_url: '/images/products/vintage-heavyweight-gray.png', display_order: 0, created_at: new Date().toISOString(),
         skus: [
           { id: 's16', variation_id: 'v3a', size_name: 'M', stock_count: 50, sku_code: 'KRM-VIN-GRY-M', created_at: new Date().toISOString() },
@@ -107,7 +107,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v3b', product_id: '3', color_name: 'Beige', color_hex: '#d4a574',
+        id: 'v3b', product_id: '00000000-0000-0000-0000-000000000003', color_name: 'Beige', color_hex: '#d4a574',
         variation_image_url: '/images/products/boxy-cropped-olive.png', display_order: 1, created_at: new Date().toISOString(),
         skus: [
           { id: 's19', variation_id: 'v3b', size_name: 'M', stock_count: 35, sku_code: 'KRM-VIN-BGE-M', created_at: new Date().toISOString() },
@@ -117,7 +117,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     ],
   },
   {
-    id: '4',
+    id: '00000000-0000-0000-0000-000000000004',
     name: 'Sudadera KROMA Clásica',
     slug: 'sudadera-kroma-clasica',
     base_price: 55.0,
@@ -132,7 +132,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     updated_at: new Date().toISOString(),
     variations: [
       {
-        id: 'v4a', product_id: '4', color_name: 'Negro', color_hex: '#000000',
+        id: 'v4a', product_id: '00000000-0000-0000-0000-000000000004', color_name: 'Negro', color_hex: '#000000',
         variation_image_url: '/images/products/sudadera-clasica-black.png', display_order: 0, created_at: new Date().toISOString(),
         skus: [
           { id: 's21', variation_id: 'v4a', size_name: 'M', stock_count: 40, sku_code: 'KRM-SUD-BLK-M', created_at: new Date().toISOString() },
@@ -141,7 +141,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v4b', product_id: '4', color_name: 'Azul Marino', color_hex: '#1a237e',
+        id: 'v4b', product_id: '00000000-0000-0000-0000-000000000004', color_name: 'Azul Marino', color_hex: '#1a237e',
         variation_image_url: '/images/products/basica-diaria-teal.png', display_order: 1, created_at: new Date().toISOString(),
         skus: [
           { id: 's24', variation_id: 'v4b', size_name: 'M', stock_count: 30, sku_code: 'KRM-SUD-NVY-M', created_at: new Date().toISOString() },
@@ -149,7 +149,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v4c', product_id: '4', color_name: 'Rojo', color_hex: '#c62828',
+        id: 'v4c', product_id: '00000000-0000-0000-0000-000000000004', color_name: 'Rojo', color_hex: '#c62828',
         variation_image_url: '/images/products/essential-oversize-black.png', display_order: 2, created_at: new Date().toISOString(),
         skus: [
           { id: 's26', variation_id: 'v4c', size_name: 'L', stock_count: 20, sku_code: 'KRM-SUD-RED-L', created_at: new Date().toISOString() },
@@ -158,7 +158,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     ],
   },
   {
-    id: '5',
+    id: '00000000-0000-0000-0000-000000000005',
     name: 'Camiseta Básica Diaria',
     slug: 'camiseta-basica-diaria',
     base_price: 20.0,
@@ -173,7 +173,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     updated_at: new Date().toISOString(),
     variations: [
       {
-        id: 'v5a', product_id: '5', color_name: 'Teal', color_hex: '#008080',
+        id: 'v5a', product_id: '00000000-0000-0000-0000-000000000005', color_name: 'Teal', color_hex: '#008080',
         variation_image_url: '/images/products/basica-diaria-teal.png', display_order: 0, created_at: new Date().toISOString(),
         skus: [
           { id: 's27', variation_id: 'v5a', size_name: 'S', stock_count: 60, sku_code: 'KRM-BAS-TEL-S', created_at: new Date().toISOString() },
@@ -182,7 +182,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v5b', product_id: '5', color_name: 'Negro', color_hex: '#000000',
+        id: 'v5b', product_id: '00000000-0000-0000-0000-000000000005', color_name: 'Negro', color_hex: '#000000',
         variation_image_url: '/images/products/essential-oversize-black.png', display_order: 1, created_at: new Date().toISOString(),
         skus: [
           { id: 's30', variation_id: 'v5b', size_name: 'S', stock_count: 50, sku_code: 'KRM-BAS-BLK-S', created_at: new Date().toISOString() },
@@ -193,7 +193,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     ],
   },
   {
-    id: '6',
+    id: '00000000-0000-0000-0000-000000000006',
     name: 'Camiseta Boxy Cropped',
     slug: 'camiseta-boxy-cropped',
     base_price: 28.0,
@@ -208,7 +208,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
     updated_at: new Date().toISOString(),
     variations: [
       {
-        id: 'v6a', product_id: '6', color_name: 'Oliva', color_hex: '#556b2f',
+        id: 'v6a', product_id: '00000000-0000-0000-0000-000000000006', color_name: 'Oliva', color_hex: '#556b2f',
         variation_image_url: '/images/products/boxy-cropped-olive.png', display_order: 0, created_at: new Date().toISOString(),
         skus: [
           { id: 's33', variation_id: 'v6a', size_name: 'M', stock_count: 0, sku_code: 'KRM-BOX-OLV-M', created_at: new Date().toISOString() },
@@ -216,7 +216,7 @@ export const MOCK_PRODUCTS: ProductWithVariations[] = [
         ],
       },
       {
-        id: 'v6b', product_id: '6', color_name: 'Beige', color_hex: '#d2b48c',
+        id: 'v6b', product_id: '00000000-0000-0000-0000-000000000006', color_name: 'Beige', color_hex: '#d2b48c',
         variation_image_url: '/images/products/vintage-heavyweight-gray.png', display_order: 1, created_at: new Date().toISOString(),
         skus: [
           { id: 's35', variation_id: 'v6b', size_name: 'M', stock_count: 0, sku_code: 'KRM-BOX-BGE-M', created_at: new Date().toISOString() },
