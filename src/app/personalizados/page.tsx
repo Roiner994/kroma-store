@@ -1,0 +1,224 @@
+'use client';
+
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { buildWhatsAppCustomUrl } from '@/lib/whatsapp';
+
+export default function PersonalizadosPage() {
+  const [files, setFiles] = useState<{ name: string; size: string }[]>([
+    { name: 'logo_kroma_v2.png', size: '1.2 MB' },
+    { name: 'referencia_estilo_retro.jpg', size: '840 KB' },
+  ]);
+  const [details, setDetails] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    setFiles((prev) => [
+      ...prev,
+      ...droppedFiles.map((f) => ({
+        name: f.name,
+        size: f.size > 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(1)} MB` : `${(f.size / 1024).toFixed(0)} KB`,
+      })),
+    ]);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSendWhatsApp = () => {
+    let message = '';
+    if (files.length > 0) {
+      message += `📎 Archivos adjuntos: ${files.map((f) => f.name).join(', ')}\n\n`;
+    }
+    if (details) {
+      message += `📋 Detalles del pedido:\n${details}`;
+    }
+    const url = buildWhatsAppCustomUrl(message || 'Me gustaría hacer un pedido personalizado.');
+    window.open(url, '_blank');
+  };
+
+  return (
+    <>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-8" id="personalizados-hero">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Left */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col justify-center"
+          >
+            <span className="mb-4 inline-block w-fit rounded-md bg-surface px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Servicio Premium
+            </span>
+            <h1 className="text-4xl font-black italic leading-tight sm:text-5xl lg:text-6xl">
+              Inspiración<br />sin límites.
+            </h1>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
+              Explora algunos de nuestros proyectos personalizados más icónicos. Desde marcas emergentes hasta colecciones exclusivas, convertimos tu visión en prendas de alta gama.
+            </p>
+            <button
+              onClick={handleSendWhatsApp}
+              className="mt-6 w-fit rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+            >
+              Comenzar Mi Diseño
+            </button>
+          </motion.div>
+
+          {/* Right - Image carousel placeholder */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface lg:aspect-auto lg:min-h-[500px]"
+          >
+            <Image
+              src="/images/products/essential-oversize-black.png"
+              alt="Diseño personalizado KROMA"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+            {/* Carousel dots */}
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />
+              ))}
+            </div>
+
+            {/* Nav arrows */}
+            <button className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* WhatsApp Order Section */}
+      <section className="px-4 py-16 sm:px-6 lg:px-8" id="whatsapp-order-section">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Left Text */}
+          <div>
+            <h2 className="text-3xl font-black leading-tight sm:text-4xl">
+              Cotiza rápido por WhatsApp
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              Olvídate de largos formularios. La forma más rápida de empezar es enviarnos tus archivos directamente por WhatsApp. Sube todas las fotos, referencias o diseños que tengas en mente, agrega una breve descripción de tu idea (cantidades, colores, tallas) y presiona enviar.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              Nuestro equipo revisará tu material al instante y te dará una propuesta a medida.
+            </p>
+
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-muted">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                </svg>
+                +58 414 858 9600
+              </div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-muted">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                hola@kroma.com
+              </div>
+            </div>
+          </div>
+
+          {/* Right Form */}
+          <div className="space-y-6">
+            {/* Upload Zone */}
+            <div>
+              <h3 className="mb-3 text-sm font-medium">1. Sube tus diseños o ideas</h3>
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+                  dragOver ? 'border-accent bg-accent/5' : 'border-border hover:border-border-hover'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="mb-3 h-10 w-10 text-muted">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
+                </svg>
+                <p className="text-sm text-muted-foreground">
+                  Arrastra una o varias fotos aquí o{' '}
+                  <button className="text-accent-light underline">explora</button>
+                </p>
+                <p className="mt-1 text-xs text-muted">PNG, JPG o PDF hasta 20MB</p>
+              </div>
+
+              {/* File List */}
+              {files.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {files.map((file, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg bg-surface px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-accent-light">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{file.size} • Listo para enviar</p>
+                        </div>
+                      </div>
+                      <button onClick={() => removeFile(i)} className="text-red-400 transition-colors hover:text-red-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Details */}
+            <div>
+              <h3 className="mb-3 text-sm font-medium">2. Detalles del pedido</h3>
+              <textarea
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                placeholder="¿Cuántas piezas necesitas? ¿En qué tallas y colores? Cuéntanos un poco más sobre tu proyecto..."
+                className="w-full rounded-xl bg-surface px-4 py-3 text-sm text-foreground placeholder-muted outline-none ring-1 ring-border focus:ring-accent min-h-[100px] resize-y"
+                id="custom-order-details"
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              onClick={handleSendWhatsApp}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp py-4 text-sm font-semibold text-white transition-colors hover:bg-whatsapp-hover"
+              id="send-designs-whatsapp"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Enviar Diseños por WhatsApp
+            </button>
+            <p className="text-center text-xs text-muted-foreground">
+              Se abrirá WhatsApp con tus imágenes adjuntas y tu mensaje preparado.
+            </p>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
