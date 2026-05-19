@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { ProductWithVariations } from '@/types';
 
@@ -18,9 +17,17 @@ interface ColorVariant {
   hex: string;
 }
 
+interface ProductImageItem {
+  key: string;
+  previewUrl: string;
+  existingUrl: string | null;
+  existingThumbUrl: string | null;
+  existingOriginalUrl: string | null;
+  file: File | null;
+}
+
 export default function ProductForm({ initialProduct, isEditing = false }: ProductFormProps) {
   const router = useRouter();
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,11 +35,24 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
   const [basePrice, setBasePrice] = useState(initialProduct?.base_price?.toString() || '0.00');
   const [fitType, setFitType] = useState(initialProduct?.fit_type || 'normal');
   const [description, setDescription] = useState(initialProduct?.description || '');
-  const [mainImage, setMainImage] = useState(initialProduct?.main_image_url || '');
-  const [imageUrls, setImageUrls] = useState<string[]>(initialProduct?.image_urls || []);
+  const initialImageItems = (initialProduct?.image_urls || []).map((url, index) => ({
+    key: `existing-${index}`,
+    previewUrl: url,
+    existingUrl: url,
+    existingThumbUrl: initialProduct?.image_thumb_urls?.[index] || null,
+    existingOriginalUrl: initialProduct?.original_image_urls?.[index] || null,
+    file: null,
+  }));
+  const [imageItems, setImageItems] = useState<ProductImageItem[]>(initialImageItems);
+  const [mainImageKey, setMainImageKey] = useState<string | null>(
+    initialProduct?.main_image_url
+      ? initialImageItems.find((item) => item.existingUrl === initialProduct.main_image_url)?.key || initialImageItems[0]?.key || null
+      : initialImageItems[0]?.key || null
+  );
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageItemsRef = useRef<ProductImageItem[]>(initialImageItems);
   
   const [selectedSizes, setSelectedSizes] = useState<string[]>(
     initialProduct?.variations?.[0]?.skus?.map(s => s.size_name) || ['S', 'M', 'L', 'XL']
@@ -57,33 +77,36 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
     );
   };
 
-  const handleImageUpload = async (files: FileList | File[]) => {
+  useEffect(() => {
+    imageItemsRef.current = imageItems;
+  }, [imageItems]);
+
+  useEffect(() => {
+    return () => {
+      imageItemsRef.current.forEach((item) => {
+        if (item.file) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+    };
+  }, []);
+
+  const handleImageSelection = async (files: FileList | File[]) => {
     setUploading(true);
     setError(null);
     try {
-      const newUrls: string[] = [];
-      
-      for (const file of Array.from(files)) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `product-images/${fileName}`;
+      const newItems = Array.from(files).map((file) => ({
+        key: `${crypto.randomUUID()}-${Date.now()}`,
+        previewUrl: URL.createObjectURL(file),
+        existingUrl: null,
+        existingThumbUrl: null,
+        existingOriginalUrl: null,
+        file,
+      }));
 
-        const { error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('products')
-          .getPublicUrl(filePath);
-        
-        newUrls.push(publicUrl);
-      }
-
-      setImageUrls(prev => [...prev, ...newUrls]);
-      if (!mainImage && newUrls.length > 0) {
-        setMainImage(newUrls[0]);
+      setImageItems((prev) => [...prev, ...newItems]);
+      if (!mainImageKey && newItems.length > 0) {
+        setMainImageKey(newItems[0].key);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al subir las imágenes');
@@ -93,12 +116,19 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
     }
   };
 
-  const removeImage = (urlToRemove: string) => {
-    setImageUrls(prev => prev.filter(url => url !== urlToRemove));
-    if (mainImage === urlToRemove) {
-      const remaining = imageUrls.filter(url => url !== urlToRemove);
-      setMainImage(remaining.length > 0 ? remaining[0] : '');
-    }
+  const removeImage = (keyToRemove: string) => {
+    setImageItems((prev) => {
+      const target = prev.find((item) => item.key === keyToRemove);
+      if (target?.file) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+
+      const remaining = prev.filter((item) => item.key !== keyToRemove);
+      if (mainImageKey === keyToRemove) {
+        setMainImageKey(remaining[0]?.key || null);
+      }
+      return remaining;
+    });
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -116,7 +146,7 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleImageUpload(e.dataTransfer.files);
+      handleImageSelection(e.dataTransfer.files);
     }
   };
 
@@ -146,103 +176,36 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
         base_price: parseFloat(basePrice),
         fit_type: fitType,
         description: description,
-        main_image_url: mainImage,
-        image_urls: imageUrls,
-        updated_at: new Date().toISOString(),
+        main_image_key: mainImageKey,
+        images: imageItems.map((item) => ({
+          key: item.key,
+          existingUrl: item.existingUrl,
+          existingThumbUrl: item.existingThumbUrl,
+          existingOriginalUrl: item.existingOriginalUrl,
+        })),
+        colors,
+        sizes: selectedSizes,
       };
 
       const productId = initialProduct?.id;
-      let targetProductId = productId;
-
-      if (isEditing && productId) {
-        // Update product basic info
-        const { error: updateError } = await supabase
-          .from('products')
-          .update(productPayload)
-          .eq('id', productId);
-        
-        if (updateError) throw updateError;
-      } else {
-        // Create new product
-        const { data: newProduct, error: insertError } = await supabase
-          .from('products')
-          .insert([{ 
-            ...productPayload, 
-            slug: productName.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') 
-          }])
-          .select()
-          .single();
-        
-        if (insertError) throw insertError;
-        targetProductId = newProduct.id;
-      }
-
-      if (targetProductId) {
-        // Sync variations and SKUs
-        // 1. Get current variations for this product
-        const { data: existingVariations } = await supabase
-          .from('product_variations')
-          .select('id, color_name, color_hex')
-          .eq('product_id', targetProductId);
-
-        const currentVariationIds = existingVariations?.map(v => v.id) || [];
-        const keepVariationIds: string[] = [];
-
-        // 2. Process colors in state
-        for (const color of colors) {
-          let variationId: string;
-          
-          // Check if this color already exists in DB
-          const existing = existingVariations?.find(v => v.color_name === color.name);
-
-          if (existing) {
-            variationId = existing.id;
-            keepVariationIds.push(variationId);
-            // Update color hex if changed
-            if (color.hex !== existing.color_hex) {
-              await supabase
-                .from('product_variations')
-                .update({ color_hex: color.hex })
-                .eq('id', variationId);
-            }
-          } else {
-            // New variation
-            const { data: newV, error: vError } = await supabase
-              .from('product_variations')
-              .insert([{
-                product_id: targetProductId,
-                color_name: color.name,
-                color_hex: color.hex,
-                display_order: 0
-              }])
-              .select()
-              .single();
-            if (vError) throw vError;
-            variationId = newV.id;
-            keepVariationIds.push(variationId);
-          }
-
-          // 3. Sync SKUs for this variation (re-create for simplicity to ensure match selectedSizes)
-          await supabase.from('product_skus').delete().eq('variation_id', variationId);
-          
-          if (selectedSizes.length > 0) {
-            const skuBatch = selectedSizes.map(size => ({
-              variation_id: variationId,
-              size_name: size,
-              stock_count: 50,
-              sku_code: `KRM-${productName.substring(0,3).toUpperCase()}-${color.name.substring(0,3).toUpperCase()}-${size}-${Math.random().toString(36).substring(2,5).toUpperCase()}`
-            }));
-
-            const { error: skuError } = await supabase.from('product_skus').insert(skuBatch);
-            if (skuError) throw skuError;
-          }
+      const endpoint = isEditing && productId ? `/api/admin/products/${productId}` : '/api/admin/products';
+      const method = isEditing && productId ? 'PUT' : 'POST';
+      const formData = new FormData();
+      formData.set('payload', JSON.stringify(productPayload));
+      imageItems.forEach((item) => {
+        if (item.file) {
+          formData.set(`image:${item.key}`, item.file);
         }
+      });
 
-        // 4. Delete removed variations
-        const toDelete = currentVariationIds.filter(id => !keepVariationIds.includes(id));
-        if (toDelete.length > 0) {
-          await supabase.from('product_variations').delete().in('id', toDelete);
-        }
+      const response = await fetch(endpoint, {
+        method,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || 'Error al guardar el producto');
       }
 
       router.refresh();
@@ -290,7 +253,7 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">Multimedia</h2>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{imageUrls.length} Imágenes</span>
+            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{imageItems.length} Imágenes</span>
           </div>
           
           {/* Main Preview Area */}
@@ -306,8 +269,14 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
             onDrop={handleDrop}
             onClick={() => !uploading && fileInputRef.current?.click()}
           >
-            {mainImage ? (
-              <Image src={mainImage} alt="Vista previa principal" fill className="object-cover" />
+            {mainImageKey ? (
+              <Image
+                src={imageItems.find((item) => item.key === mainImageKey)?.previewUrl || ''}
+                alt="Vista previa principal"
+                fill
+                className="object-cover"
+                unoptimized
+              />
             ) : (
               <div className="flex flex-col h-full items-center justify-center text-center p-6 grayscale">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 mb-3 text-muted-foreground">
@@ -327,33 +296,33 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
           </div>
 
           {/* Gallery Grid */}
-          {imageUrls.length > 0 && (
+          {imageItems.length > 0 && (
             <div className="grid grid-cols-4 gap-3">
-              {imageUrls.map((url, index) => (
+              {imageItems.map((image, index) => (
                 <div 
-                  key={index} 
+                  key={image.key} 
                   className={cn(
                     "group relative aspect-square rounded-lg overflow-hidden border-2 transition-all",
-                    mainImage === url ? "border-accent shadow-[0_0_10px_rgba(139,92,246,0.3)]" : "border-border hover:border-border/80"
+                    mainImageKey === image.key ? "border-accent shadow-[0_0_10px_rgba(139,92,246,0.3)]" : "border-border hover:border-border/80"
                   )}
                 >
-                  <Image src={url} alt={`Gallery ${index}`} fill className="object-cover" />
+                  <Image src={image.previewUrl} alt={`Gallery ${index}`} fill className="object-cover" unoptimized />
                   
                   {/* Actions Overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-1">
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setMainImage(url); }}
+                      onClick={(e) => { e.stopPropagation(); setMainImageKey(image.key); }}
                       className={cn(
                         "rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider transition-colors",
-                        mainImage === url ? "bg-accent text-white" : "bg-white/20 text-white hover:bg-accent"
+                        mainImageKey === image.key ? "bg-accent text-white" : "bg-white/20 text-white hover:bg-accent"
                       )}
                     >
-                      {mainImage === url ? 'Principal' : 'Usar como principal'}
+                      {mainImageKey === image.key ? 'Principal' : 'Usar como principal'}
                     </button>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); removeImage(url); }}
+                      onClick={(e) => { e.stopPropagation(); removeImage(image.key); }}
                       className="rounded bg-red-500/80 p-1 text-white hover:bg-red-500 transition-colors"
                       title="Eliminar"
                     >
@@ -364,7 +333,7 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
                   </div>
                   
                   {/* Principal Badge */}
-                  {mainImage === url && (
+                  {mainImageKey === image.key && (
                     <div className="absolute top-1 left-1 bg-accent rounded-full p-0.5 shadow-sm">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 text-white">
                         <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
@@ -396,7 +365,7 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
             accept="image/*"
             multiple
             onChange={(e) => {
-              if (e.target.files) handleImageUpload(e.target.files);
+              if (e.target.files) handleImageSelection(e.target.files);
             }}
           />
           

@@ -34,7 +34,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
         <div className="relative aspect-square overflow-hidden rounded-xl bg-surface">
           {product.main_image_url && (
             <Image
-              src={product.main_image_url}
+              src={product.main_image_thumb_url || product.main_image_url}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"

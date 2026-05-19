@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import AdminLogoutButton from '@/components/admin/AdminLogoutButton';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -51,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Action buttons moved to specific pages */}
+            <AdminLogoutButton />
           </div>
 
         </nav>

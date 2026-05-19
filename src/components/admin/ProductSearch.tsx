@@ -8,26 +8,43 @@ export default function ProductSearch() {
   const pathname = usePathname();
   const { replace } = useRouter();
   const [isPending, startTransition] = useTransition();
+  const currentQuery = searchParams.toString();
+  const currentSearch = searchParams.get('q')?.toString() || '';
 
-  const [term, setTerm] = useState(searchParams.get('q')?.toString() || '');
+  const [term, setTerm] = useState(currentSearch);
+
+  useEffect(() => {
+    if (currentSearch !== term) {
+      setTerm(currentSearch);
+    }
+  }, [currentSearch, term]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(currentQuery);
       if (term) {
         params.set('q', term);
         params.set('p', '1'); // Reset to page 1 on search
       } else {
         params.delete('q');
+        params.delete('p');
       }
-      
+
+      const nextQuery = params.toString();
+      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+
+      if (nextUrl === currentUrl) {
+        return;
+      }
+
       startTransition(() => {
-        replace(`${pathname}?${params.toString()}`);
+        replace(nextUrl);
       });
     }, 400); // 400ms debounce
 
     return () => clearTimeout(handler);
-  }, [term, pathname, replace, searchParams]);
+  }, [currentQuery, pathname, replace, term]);
 
   return (
     <div className="relative w-full max-w-sm">

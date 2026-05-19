@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:supabase-to-firebase": "node scripts/migrate-supabase-to-firebase.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.10.0",
-    "@supabase/supabase-js": "^2.101.1",
+    "firebase": "^12.13.0",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^12.38.0",
     "next": "16.2.2",
     "react": "19.2.4",

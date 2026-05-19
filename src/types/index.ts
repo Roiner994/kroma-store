@@ -11,8 +11,12 @@ export interface Product {
   features: string[];
   fit_type: string;
   sizing_chart_url: string | null;
+  original_main_image_url?: string | null;
   main_image_url: string | null;
+  main_image_thumb_url?: string | null;
+  original_image_urls?: string[];
   image_urls: string[];
+  image_thumb_urls?: string[];
   badge: string | null;
   is_active: boolean;
   created_at: string;

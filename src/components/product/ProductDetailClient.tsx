@@ -33,9 +33,18 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
   const currentSku = selectedVariation?.skus?.find((s) => s.size_name === selectedSize);
 
   // Build combined gallery from main image and additional images
-  const gallery = [product.main_image_url, ...(product.image_urls || [])]
-    .filter((url: string | null): url is string => !!url)
-    .filter((url, index, self) => self.indexOf(url) === index);
+  const gallery = [
+    {
+      full: product.main_image_url,
+      thumb: product.main_image_thumb_url || product.main_image_url,
+    },
+    ...(product.image_urls || []).map((url, index) => ({
+      full: url,
+      thumb: product.image_thumb_urls?.[index] || url,
+    })),
+  ]
+    .filter((image): image is { full: string; thumb: string } => !!image.full && !!image.thumb)
+    .filter((image, index, self) => self.findIndex((entry) => entry.full === image.full) === index);
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedVariation || !currentSku) return;
@@ -107,17 +116,17 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
           {/* Thumbnails */}
           {gallery.length > 1 && (
             <div className="mt-3 flex gap-2">
-              {gallery.map((url, i) => (
+              {gallery.map((image, i) => (
                 <button
                   key={i}
-                  onClick={() => setSelectedImage(url)}
+                  onClick={() => setSelectedImage(image.full)}
                   className={cn(
                     'relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all',
-                    selectedImage === url ? 'border-accent' : 'border-border hover:border-border-hover'
+                    selectedImage === image.full ? 'border-accent' : 'border-border hover:border-border-hover'
                   )}
                 >
                   <Image
-                    src={url}
+                    src={image.thumb}
                     alt={`Thumbnail ${i + 1}`}
                     fill
                     className="object-cover"
@@ -322,7 +331,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               <Link key={rp.id} href={`/producto/${rp.slug}`} className="group">
                 <div className="relative aspect-square overflow-hidden rounded-xl bg-surface">
                   <Image
-                    src={rp.main_image_url || ''}
+                    src={rp.main_image_thumb_url || rp.main_image_url || ''}
                     alt={rp.name}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { firebaseAuth } from '@/lib/firebase/client';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -19,22 +20,22 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const credential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+      const idToken = await credential.user.getIdToken();
+      const sessionResponse = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
       });
 
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
+      if (!sessionResponse.ok) {
+        throw new Error('No se pudo crear la sesión segura');
       }
 
       router.push('/admin/productos');
       router.refresh();
-    } catch {
-      setError('Error al iniciar sesión');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
       setLoading(false);
     }
   };

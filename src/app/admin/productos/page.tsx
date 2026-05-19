@@ -64,7 +64,13 @@ export default async function AdminProductsPage({
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-surface ring-1 ring-white/5">
                           {product.main_image_url && (
-                            <Image src={product.main_image_url} alt={product.name} fill className="object-cover" sizes="48px" />
+                            <Image
+                              src={product.main_image_thumb_url || product.main_image_url}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
                           )}
                         </div>
                         <div className="flex flex-col min-w-0">

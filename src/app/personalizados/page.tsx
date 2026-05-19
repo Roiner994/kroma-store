@@ -4,7 +4,8 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { buildWhatsAppCustomUrl } from '@/lib/whatsapp';
-import { createClient } from '@/lib/supabase/client';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { firebaseStorage } from '@/lib/firebase/client';
 
 
 const CAROUSEL_IMAGES = [
@@ -20,7 +21,6 @@ export default function PersonalizadosPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
 
 
   const handleNextImage = () => {
@@ -60,21 +60,10 @@ export default function PersonalizadosPage() {
       const uploadPromises = files.map(async (file) => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error } = await supabase.storage
-          .from('custom-designs')
-          .upload(filePath, file);
-
-
-        if (error) throw error;
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('custom-designs')
-          .getPublicUrl(filePath);
-
-        return publicUrl;
+        const filePath = `custom-designs/${fileName}`;
+        const storageRef = ref(firebaseStorage, filePath);
+        await uploadBytes(storageRef, file);
+        return getDownloadURL(storageRef);
       });
 
       const publicUrls = await Promise.all(uploadPromises);

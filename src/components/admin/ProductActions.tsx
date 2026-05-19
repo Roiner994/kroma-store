@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 
 interface ProductActionsProps {
   productId: string;
@@ -12,7 +11,6 @@ interface ProductActionsProps {
 
 export default function ProductActions({ productId, productName }: ProductActionsProps) {
   const router = useRouter();
-  const supabase = createClient();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -22,12 +20,8 @@ export default function ProductActions({ productId, productName }: ProductAction
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-
-      if (error) throw error;
+      const response = await fetch(`/api/admin/products/${productId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('No se pudo eliminar el producto');
       
       router.refresh();
     } catch (err: unknown) {
