@@ -1,4 +1,5 @@
 import { ProductWithVariations } from '@/types';
+import { connection } from 'next/server';
 import { MOCK_PRODUCTS, FIT_TYPE_LABELS } from './mock-data';
 import { firebaseAdminDb } from '@/lib/firebase/admin';
 import { FirebaseProductDocument, toProductWithVariations } from '@/lib/products';
@@ -60,6 +61,8 @@ export async function getProducts(options: {
 } = {}): Promise<{ products: ProductWithVariations[]; totalCount: number }> {
   const { search, page = 1, pageSize = 10, isActive = true } = options;
 
+  await connection();
+
   if (shouldUseMockData()) {
     return getMockProducts(options);
   }
@@ -89,6 +92,8 @@ export async function getProducts(options: {
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductWithVariations | null> {
+  await connection();
+
   if (shouldUseMockData()) {
     return (MOCK_PRODUCTS as ProductWithVariations[]).find((p) => p.slug === slug) || null;
   }
@@ -105,6 +110,8 @@ export async function getProductBySlug(slug: string): Promise<ProductWithVariati
 }
 
 export async function getProductById(id: string): Promise<ProductWithVariations | null> {
+  await connection();
+
   if (shouldUseMockData()) {
     return (MOCK_PRODUCTS as ProductWithVariations[]).find((p) => p.id === id) || null;
   }
