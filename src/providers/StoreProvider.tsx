@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useRef, useContext, type ReactNode } from 'react';
+import { createContext, useState, useContext, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 import { createCartStore, type CartStore } from '@/stores/cart-store';
 import { createFiltersStore, type FiltersStore } from '@/stores/filters-store';
@@ -14,12 +14,9 @@ type CartStoreApi = ReturnType<typeof createCartStore>;
 const CartStoreContext = createContext<CartStoreApi | undefined>(undefined);
 
 export function CartStoreProvider({ children }: { children: ReactNode }) {
-  const storeRef = useRef<CartStoreApi>(undefined);
-  if (!storeRef.current) {
-    storeRef.current = createCartStore();
-  }
+  const [store] = useState(() => createCartStore());
   return (
-    <CartStoreContext.Provider value={storeRef.current}>
+    <CartStoreContext.Provider value={store}>
       {children}
     </CartStoreContext.Provider>
   );
@@ -40,12 +37,9 @@ type FiltersStoreApi = ReturnType<typeof createFiltersStore>;
 const FiltersStoreContext = createContext<FiltersStoreApi | undefined>(undefined);
 
 export function FiltersStoreProvider({ children }: { children: ReactNode }) {
-  const storeRef = useRef<FiltersStoreApi>(undefined);
-  if (!storeRef.current) {
-    storeRef.current = createFiltersStore();
-  }
+  const [store] = useState(() => createFiltersStore());
   return (
-    <FiltersStoreContext.Provider value={storeRef.current}>
+    <FiltersStoreContext.Provider value={store}>
       {children}
     </FiltersStoreContext.Provider>
   );

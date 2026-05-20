@@ -5,7 +5,8 @@ import ProductGrid from '@/components/catalog/ProductGrid';
 import { getProducts } from '@/lib/data';
 
 export default async function CatalogPage() {
-  const { products } = await getProducts();
+  // Fetch up to 1000 products so client-side pagination and filters have access to the complete catalog
+  const { products } = await getProducts({ pageSize: 1000 });
 
   return (
     <>

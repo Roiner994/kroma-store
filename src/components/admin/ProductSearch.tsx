@@ -8,20 +8,24 @@ export default function ProductSearch() {
   const pathname = usePathname();
   const { replace } = useRouter();
   const [isPending, startTransition] = useTransition();
-  const currentQuery = searchParams.toString();
   const currentSearch = searchParams.get('q')?.toString() || '';
 
   const [term, setTerm] = useState(currentSearch);
+  const [prevSearch, setPrevSearch] = useState(currentSearch);
+
+  if (currentSearch !== prevSearch) {
+    setPrevSearch(currentSearch);
+    setTerm(currentSearch);
+  }
 
   useEffect(() => {
-    if (currentSearch !== term) {
-      setTerm(currentSearch);
+    // Only run search if the search term in the input differs from the URL search query
+    if (term === currentSearch) {
+      return;
     }
-  }, [currentSearch, term]);
 
-  useEffect(() => {
     const handler = setTimeout(() => {
-      const params = new URLSearchParams(currentQuery);
+      const params = new URLSearchParams(searchParams.toString());
       if (term) {
         params.set('q', term);
         params.set('p', '1'); // Reset to page 1 on search
@@ -32,11 +36,6 @@ export default function ProductSearch() {
 
       const nextQuery = params.toString();
       const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-      const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
-
-      if (nextUrl === currentUrl) {
-        return;
-      }
 
       startTransition(() => {
         replace(nextUrl);
@@ -44,7 +43,7 @@ export default function ProductSearch() {
     }, 400); // 400ms debounce
 
     return () => clearTimeout(handler);
-  }, [currentQuery, pathname, replace, term]);
+  }, [term, currentSearch, pathname, replace, searchParams]);
 
   return (
     <div className="relative w-full max-w-sm">

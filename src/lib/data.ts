@@ -16,6 +16,15 @@ function ensureFirebaseConfigured() {
   }
 }
 
+export function resolvePage(page: number | undefined, totalCount: number, pageSize: number) {
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  if (!Number.isFinite(page) || !page || page < 1) {
+    return 1;
+  }
+
+  return Math.min(page, totalPages);
+}
+
 async function listProductsFromFirestore(): Promise<ProductWithVariations[]> {
   const snapshot = await firebaseAdminDb.collection('products').get();
 
@@ -45,7 +54,8 @@ function getMockProducts(options: {
     filtered = filtered.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
   }
 
-  const start = (page - 1) * pageSize;
+  const safePage = resolvePage(page, filtered.length, pageSize);
+  const start = (safePage - 1) * pageSize;
 
   return {
     products: filtered.slice(start, start + pageSize) as ProductWithVariations[],
@@ -80,7 +90,8 @@ export async function getProducts(options: {
       products = products.filter((p) => p.name.toLowerCase().includes(needle));
     }
 
-    const start = (page - 1) * pageSize;
+    const safePage = resolvePage(page, products.length, pageSize);
+    const start = (safePage - 1) * pageSize;
     return {
       products: products.slice(start, start + pageSize),
       totalCount: products.length,
