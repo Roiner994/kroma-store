@@ -6,6 +6,7 @@ import ProductSearch from '@/components/admin/ProductSearch';
 import Pagination from '@/components/admin/Pagination';
 import ProductActions from '@/components/admin/ProductActions';
 import { resolvePage } from '@/lib/data';
+import { resolveProductImageUrl } from '@/lib/product-image-url';
 
 export default async function AdminProductsPage({ 
   searchParams 
@@ -68,15 +69,13 @@ export default async function AdminProductsPage({
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-surface ring-1 ring-white/5">
-                            {product.main_image_url && (
-                              <Image
-                                  src={product.main_image_thumb_url || product.main_image_url}
+                            <Image
+                                  src={resolveProductImageUrl(product.main_image_thumb_url || product.main_image_url)}
                                   alt={product.name}
                                   fill
                                   className="object-cover"
                                   sizes="48px"
                               />
-                            )}
                           </div>
                           <div className="flex flex-col min-w-0">
                             <span className="text-sm font-medium leading-none truncate">{product.name}</span>
@@ -118,15 +117,13 @@ export default async function AdminProductsPage({
                 <div key={product.id} className="p-4 space-y-3 hover:bg-surface/10 transition-colors">
                   <div className="flex gap-3">
                     <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-surface ring-1 ring-white/5">
-                      {product.main_image_url && (
-                        <Image
-                          src={product.main_image_thumb_url || product.main_image_url}
+                      <Image
+                          src={resolveProductImageUrl(product.main_image_thumb_url || product.main_image_url)}
                           alt={product.name}
                           fill
                           className="object-cover"
                           sizes="64px"
                         />
-                      )}
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <span className="text-sm font-semibold truncate text-foreground">{product.name}</span>

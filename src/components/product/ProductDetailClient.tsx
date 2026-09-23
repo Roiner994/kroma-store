@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { ProductWithVariations } from '@/types';
 import { formatPrice, cn } from '@/lib/utils';
 import { FIT_TYPE_LABELS } from '@/lib/mock-data';
+import { resolveProductImageUrl, isUnusableProductImageUrl, DEFAULT_PRODUCT_IMAGE } from '@/lib/product-image-url';
 import { useCartStore } from '@/providers/StoreProvider';
 import { buildWhatsAppProductUrl } from '@/lib/whatsapp';
 
@@ -17,7 +18,7 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({ product, relatedProducts }: ProductDetailClientProps) {
   const [selectedVariation, setSelectedVariation] = useState(product.variations[0]);
-  const [selectedImage, setSelectedImage] = useState(product.main_image_url || '');
+  const [selectedImage, setSelectedImage] = useState(resolveProductImageUrl(product.main_image_url));
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [openAccordion, setOpenAccordion] = useState<string | null>('details');
@@ -44,7 +45,17 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
     })),
   ]
     .filter((image): image is { full: string; thumb: string } => !!image.full && !!image.thumb)
+    .filter((image) => !isUnusableProductImageUrl(image.full))
+    .map((image) => ({
+      full: resolveProductImageUrl(image.full),
+      thumb: resolveProductImageUrl(image.thumb),
+    }))
     .filter((image, index, self) => self.findIndex((entry) => entry.full === image.full) === index);
+
+  const displayGallery =
+    gallery.length > 0
+      ? gallery
+      : [{ full: DEFAULT_PRODUCT_IMAGE, thumb: DEFAULT_PRODUCT_IMAGE }];
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedVariation || !currentSku) return;
@@ -58,7 +69,9 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
       size: selectedSize,
       price: product.base_price,
       quantity,
-      imageUrl: selectedVariation.variation_image_url || product.main_image_url || '',
+      imageUrl: resolveProductImageUrl(
+        selectedVariation.variation_image_url || product.main_image_url
+      ),
       fitType: FIT_TYPE_LABELS[product.fit_type] || product.fit_type,
       slug: product.slug,
     });
@@ -104,7 +117,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
             className="relative aspect-square overflow-hidden rounded-2xl bg-surface"
           >
             <Image
-              src={selectedImage || '/placeholder-product.png'}
+              src={resolveProductImageUrl(selectedImage)}
               alt={product.name}
               fill
               className="object-cover"
@@ -114,9 +127,9 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
 
 
           {/* Thumbnails */}
-          {gallery.length > 1 && (
+          {displayGallery.length > 1 && (
             <div className="mt-3 flex gap-2">
-              {gallery.map((image, i) => (
+              {displayGallery.map((image, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(image.full)}
@@ -164,7 +177,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                   onClick={() => { 
                     setSelectedVariation(v); 
                     setSelectedSize(''); 
-                    if (v.variation_image_url) setSelectedImage(v.variation_image_url);
+                    if (v.variation_image_url) setSelectedImage(resolveProductImageUrl(v.variation_image_url));
                   }}
                   className={cn(
                     'h-8 w-8 rounded-full border-2 transition-all',
@@ -331,7 +344,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               <Link key={rp.id} href={`/producto/${rp.slug}`} className="group">
                 <div className="relative aspect-square overflow-hidden rounded-xl bg-surface">
                   <Image
-                    src={rp.main_image_thumb_url || rp.main_image_url || ''}
+                    src={resolveProductImageUrl(rp.main_image_thumb_url || rp.main_image_url)}
                     alt={rp.name}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"

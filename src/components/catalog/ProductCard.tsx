@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ProductWithVariations } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { FIT_TYPE_LABELS } from '@/lib/mock-data';
+import { resolveProductImageUrl } from '@/lib/product-image-url';
 
 interface ProductCardProps {
   product: ProductWithVariations;
@@ -32,15 +33,13 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       >
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden rounded-xl bg-surface">
-          {product.main_image_url && (
-            <Image
-              src={product.main_image_thumb_url || product.main_image_url}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-            />
-          )}
+          <Image
+            src={resolveProductImageUrl(product.main_image_thumb_url || product.main_image_url)}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+          />
 
           {/* Badge */}
           {product.badge && (

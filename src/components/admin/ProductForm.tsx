@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ProductWithVariations } from '@/types';
+import { isUnusableProductImageUrl } from '@/lib/product-image-url';
 
 interface ProductFormProps {
   initialProduct?: ProductWithVariations;
@@ -35,19 +36,21 @@ export default function ProductForm({ initialProduct, isEditing = false }: Produ
   const [basePrice, setBasePrice] = useState(initialProduct?.base_price?.toString() || '0.00');
   const [fitType, setFitType] = useState(initialProduct?.fit_type || 'normal');
   const [description, setDescription] = useState(initialProduct?.description || '');
-  const initialImageItems = (initialProduct?.image_urls || []).map((url, index) => ({
-    key: `existing-${index}`,
-    previewUrl: url,
-    existingUrl: url,
-    existingThumbUrl: initialProduct?.image_thumb_urls?.[index] || null,
-    existingOriginalUrl: initialProduct?.original_image_urls?.[index] || null,
-    file: null,
-  }));
+  const initialImageItems = (initialProduct?.image_urls || [])
+    .map((url, index) => ({
+      key: `existing-${index}`,
+      previewUrl: url,
+      existingUrl: url,
+      existingThumbUrl: initialProduct?.image_thumb_urls?.[index] || null,
+      existingOriginalUrl: initialProduct?.original_image_urls?.[index] || null,
+      file: null as File | null,
+    }))
+    .filter((item) => !isUnusableProductImageUrl(item.existingUrl));
   const [imageItems, setImageItems] = useState<ProductImageItem[]>(initialImageItems);
   const [mainImageKey, setMainImageKey] = useState<string | null>(
-    initialProduct?.main_image_url
-      ? initialImageItems.find((item) => item.existingUrl === initialProduct.main_image_url)?.key || initialImageItems[0]?.key || null
-      : initialImageItems[0]?.key || null
+    initialImageItems.find((item) => item.existingUrl === initialProduct?.main_image_url)?.key ||
+      initialImageItems[0]?.key ||
+      null
   );
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
