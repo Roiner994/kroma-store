@@ -1,30 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { firebaseAdminAuth } from '@/lib/firebase/admin';
 import { FIREBASE_SESSION_COOKIE } from '@/lib/firebase/session';
 
 export async function proxy(request: NextRequest) {
   const sessionCookie = request.cookies.get(FIREBASE_SESSION_COOKIE)?.value;
-  let isAuthenticated = false;
-
-  if (sessionCookie) {
-    try {
-      await firebaseAdminAuth.verifySessionCookie(sessionCookie, true);
-      isAuthenticated = true;
-    } catch {
-      isAuthenticated = false;
-    }
-  }
-
   const isLogin = request.nextUrl.pathname === '/admin/login';
   const isAdmin = request.nextUrl.pathname.startsWith('/admin');
 
-  if (isAdmin && !isLogin && !isAuthenticated) {
+  // Presence check only — full verify happens in API/server routes.
+  // Avoid loading firebase-admin in proxy (was blocking auth redirects).
+  const hasSession = Boolean(sessionCookie);
+
+  if (isAdmin && !isLogin && !hasSession) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/login';
     return NextResponse.redirect(url);
   }
 
-  if (isLogin && isAuthenticated) {
+  if (isLogin && hasSession) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/productos';
     return NextResponse.redirect(url);
@@ -34,5 +26,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin', '/admin/:path*'],
 };
