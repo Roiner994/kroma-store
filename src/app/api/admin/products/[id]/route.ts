@@ -119,7 +119,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     console.error('Failed to update product', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update product';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

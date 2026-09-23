@@ -19,6 +19,7 @@ function r2RemotePattern() {
 const r2Pattern = r2RemotePattern();
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['sharp'],
   images: {
     remotePatterns: [
       {

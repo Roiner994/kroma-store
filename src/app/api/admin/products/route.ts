@@ -112,6 +112,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     console.error('Failed to create product', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create product';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
