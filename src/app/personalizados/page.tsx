@@ -4,8 +4,6 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { buildWhatsAppCustomUrl } from '@/lib/whatsapp';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { firebaseStorage } from '@/lib/firebase/client';
 
 
 const CAROUSEL_IMAGES = [
@@ -57,16 +55,24 @@ export default function PersonalizadosPage() {
 
     setIsUploading(true);
     try {
-      const uploadPromises = files.map(async (file) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `custom-designs/${fileName}`;
-        const storageRef = ref(firebaseStorage, filePath);
-        await uploadBytes(storageRef, file);
-        return getDownloadURL(storageRef);
-      });
-
-      const publicUrls = await Promise.all(uploadPromises);
+      const publicUrls = await Promise.all(
+        files.map(async (file) => {
+          const body = new FormData();
+          body.set('file', file);
+          const response = await fetch('/api/uploads/custom-design', {
+            method: 'POST',
+            body,
+          });
+          if (!response.ok) {
+            throw new Error(`Upload failed with status ${response.status}`);
+          }
+          const data = (await response.json()) as { url?: string };
+          if (!data.url) {
+            throw new Error('Upload response missing url');
+          }
+          return data.url;
+        })
+      );
 
       let message = '';
       if (publicUrls.length > 0) {

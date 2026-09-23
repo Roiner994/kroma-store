@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { firebaseAdminDb } from '@/lib/firebase/admin';
 import { requireAdminSession } from '@/lib/firebase/auth-server';
 import { normalizeSearch, slugify, FirebaseProductDocument } from '@/lib/products';
-import { resolveProductImages, type ResolvedProductImage } from '@/lib/firebase/product-images';
+import { resolveProductImages, type ResolvedProductImage } from '@/lib/product-images';
 
 interface ProductMutationInput {
   name: string;

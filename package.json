@@ -7,15 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate:supabase-to-firebase": "node scripts/migrate-supabase-to-firebase.mjs"
+    "migrate:supabase-to-firebase": "node scripts/migrate-supabase-to-firebase.mjs",
+    "migrate:images-to-r2": "node scripts/migrate-images-to-r2.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1138.0",
     "firebase": "^12.13.0",
     "firebase-admin": "^13.10.0",
     "framer-motion": "^12.38.0",
     "next": "16.2.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "sharp": "^0.35.4",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
@@ -23,6 +26,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sharp": "^0.31.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
